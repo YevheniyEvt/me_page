@@ -1,0 +1,30 @@
+name: myPage
+services:
+  mongodb:
+    hostname: mongodb
+    image: mongo:4.4
+    env_file: .env
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${DATABASES_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${DATABASES_PASSWORD}
+    ports:
+      - 27019:27017
+    volumes:
+      - data:/data/db
+
+  fast-api:
+    build: .
+    command: >
+      sh -c "fastapi dev app/main.py --host 0.0.0.0"
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+    env_file:
+      - .env
+
+volumes:
+  data:
+  config:
