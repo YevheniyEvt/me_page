@@ -1,14 +1,7 @@
 
-from .schemes import UpdateAboutMe, DeleteLink
 from .db.models import (AboutMe, Projects, Education, Skills, Hobbies,
                      Links, Address)
 
-async def set_delete_links(link_enum):
-    about_db = await AboutMe.find_one()
-    link_enum = DeleteLink()
-    for link in about_db.links:
-        setattr(link_enum, link.name, "link.name")
-    return link_enum
 
 async def create_about():
     descriptions = 'Привіт. Я Python-розробник початківець. Маю досвід роботи з Django, FastAPI, PostgreSQL Ubuntu, Docker. Люблю приймати нові виклики, вирішувати складні задачі. Наразі весь вільний час приділяю навчанню. Вивчаю python, алгоритми, нові інструменти для покращення своїх навичок програміста.'
@@ -37,3 +30,8 @@ async def create_about():
         links=[linkedin_link, github_link]
     )
     return about
+
+def check_first_name(user_first_name: str | None = None):
+    if user_first_name == None:
+        user_first_name = 'Євгеній'
+    return user_first_name
