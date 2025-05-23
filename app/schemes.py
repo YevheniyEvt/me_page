@@ -12,5 +12,14 @@ class UpdateAboutMe(BaseModel):
     short_description: str | None = None
     email: EmailStr | None = None
 
+
+class CreateAboutMe(BaseModel):
+    first_name: str
+    second_name: str
+    descriptions: str
+    short_description: str 
+    email: EmailStr
+
+
 class DeleteLink(str, Enum):
     link = 'link'

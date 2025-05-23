@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from typing import Annotated
 from logging import info
 
@@ -6,9 +6,10 @@ from fastapi import FastAPI, Depends, Request
 from contextlib import asynccontextmanager
 from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
+from beanie.operators import Pull
 
-from ..dependencies import set_delete_links
-from ..schemes import UpdateAboutMe, DeleteLink
+from ..dependencies import set_delete_links, create_about
+from ..schemes import UpdateAboutMe, DeleteLink, CreateAboutMe
 from ..db.models import (AboutMe, Projects, Education, Skills, Hobbies,
                      Links, Address)
 
@@ -18,38 +19,34 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=AboutMe)
-async def about() ->AboutMe:
-    # descriptions = 'Привіт. Я Python-розробник початківець. Маю досвід роботи з Django, FastAPI, PostgreSQL Ubuntu, Docker. Люблю приймати нові виклики, вирішувати складні задачі. Наразі весь вільний час приділяю навчанню. Вивчаю python, алгоритми, нові інструменти для покращення своїх навичок програміста.'
-    # short_description = 'Наразі активно шукаю роботу, хочу долучитись до реальних проєктів та навчатись у досвідчених колег.'
-    # linkedin_url = 'https://www.linkedin.com/in/yevheniy-yevtushenko-660112319/'
-    # linkedin_link = Links(
-    #     name='linkedin',
-    #     url=linkedin_url
-    # )
-    # github_url = 'https://github.com/YevheniyEvt'
-    # github_link = Links(
-    #     name='GitHub',
-    #     url=github_url
-    # )
-    # address = Address(
-    #     city='Київ',
-    #     country='Україна'
-    # )
-    # about = AboutMe(
-    #     first_name='Євгеній',
-    #     second_name='Євтушенко',
-    #     descriptions=descriptions,
-    #     short_description=short_description,
-    #     email = 'genya421@gmail.com',
-    #     address=address,
-    #     links=[linkedin_link, github_link]
-    # )
-    yevgeniy = await AboutMe.find_one()
-    # if not yevgeniy:
-    #     await about.create()
-    #     yevgeniy = about
-    return yevgeniy
+@router.get("/")
+async def about(name: str)->AboutMe:
+    if name == 'Євгеній':
+        about = await AboutMe.find_one(AboutMe.first_name == 'Євгеній')
+        if not about:
+            about = create_about()
+            await about.create()
+    else:
+        about = await AboutMe.find_one(AboutMe.first_name == name)
+        if not about:
+            raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"About with name {name} does not exist"
+        )
+    return about
+
+
+@router.post('/create')
+async def create_about(about: CreateAboutMe)->AboutMe:
+    about_db = AboutMe(**about.model_dump())
+    await about_db.create()
+    return about_db
+
+
+@router.delete('/delete')
+async def delete_about(first_name: str):
+    await AboutMe.find(AboutMe.first_name == first_name).delete()
+    return {'msg': f'Name {first_name} was deleted'}
 
 
 @router.put('/update')
@@ -58,26 +55,34 @@ async def update_about(about: UpdateAboutMe) ->AboutMe:
     for attr in about:
         if attr[1] is not None:
             setattr(about_db, attr[0], attr[1])
-    await about_db.save()
+    await about_db.save_changes()
     return about_db
 
-@router.put('/update-link')
-async def update_about(link: Links) ->list[Links]:
+
+@router.post('/update-link')
+async def update_or_add_link(link: Links) ->list[Links]:
     about_db = await AboutMe.find_one()
-    updated = False
-    for link_db in about_db.links:
-        if link_db.name == link.name:
-            link_db.url = link.url
-            await about_db.save()
-            updated = True
-            break
-    if not updated:
+    link_get = (link_db for link_db in about_db.links if link_db.name == link.name)
+    try:
+        link_db = next(link_get)
+        link_db.url = link.url
+        await about_db.save_changes()
+    except StopIteration:
         about_db.links.append(link)
         await about_db.save()
     return about_db.links
 
-@router.delete('/delete-link/{link_enum}')
-async def delete_about(link_enum: DeleteLink) ->list[Links]:
-    about_db = await AboutMe.find_one()
 
+@router.delete('/delete-link/{name}')
+async def delete_link(name: str) ->list[Links]:
+    about_db = await AboutMe.find_one()
+    updated_links = [link for link in about_db.links if link.name != name]
+    if len(updated_links) == len(about_db.links):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"link with name {name} does not exist"
+        )
+    else:
+        about_db.links = updated_links
+        await about_db.save_changes()
     return about_db.links

@@ -16,8 +16,11 @@ class AboutMe(Document):
     descriptions: str
     short_description: str
     email: EmailStr
-    address: Address
-    links: list[Links]
+    address: Address | None = None
+    links: list[Links] | None = None
+
+    class Settings:
+        use_state_management = True
 
 
 class Tags(BaseModel):
@@ -30,6 +33,9 @@ class Projects(Document):
     tags: Tags
     instruments: str
     links: list[Links]
+
+    class Settings:
+        use_state_management = True
 
 
 class Course(BaseModel):
@@ -50,6 +56,9 @@ class Education(Document):
     lections: list[Lection]
     books: list[Book]
 
+    class Settings:
+        use_state_management = True
+
 
 class WorkFlow(BaseModel):
     name: str
@@ -58,7 +67,11 @@ class Skills(Document):
     workflows: list[WorkFlow]
     instrument: str
 
+    class Settings:
+        use_state_management = True
 
 class Hobbies(Document):
     descriptions: str
 
+    class Settings:
+        use_state_management = True
