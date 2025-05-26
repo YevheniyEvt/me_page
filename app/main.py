@@ -7,7 +7,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 from .routers import about_me, projects
 from .settings import config
-from .db.models import (AboutMe, Projects, Education, Skills, Hobbies,
+from .db.models import (User, AboutMe, Projects, Education, Skills, Hobbies,
                      Links, Address)
 
 
@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
         info("Connected to database cluster.")
     await init_beanie(
         database=app.database,
-        document_models=[AboutMe, Projects, Education, Skills, Hobbies]
+        document_models=[User, AboutMe, Projects, Education, Skills, Hobbies]
         )
     yield
     app.mongodb_client.close()

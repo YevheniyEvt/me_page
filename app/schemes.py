@@ -1,7 +1,7 @@
 from beanie import Document, Link
 from pydantic import BaseModel, EmailStr, HttpUrl
 from .db.models import (AboutMe, Projects, Education, Skills, Hobbies,
-                     Links, Address, Tags)
+                     Links, Address, Tags, Course, Lection, Book)
 
 
 class BaseAboutMe(BaseModel):
@@ -52,3 +52,15 @@ class UpdateProject(BaseModel):
 
 class DeleteProject(BaseModel):
     name: str
+
+class ReprEducation(BaseModel):
+    descriptions: str
+    courses: list[Course] 
+    lections: list[Lection] 
+    books: list[Book] 
+
+class CreateEducation(BaseModel):
+    descriptions: str
+    courses: list[Course] | None = None
+    lections: list[Lection] | None = None
+    books: list[Book] | None = None

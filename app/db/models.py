@@ -43,8 +43,6 @@ class AboutMe(Document):
         use_state_management = True
 
 
-
-
 class Course(BaseModel):
     name: str
     descriptions: str
@@ -57,14 +55,14 @@ class Lection(BaseModel):
 
 class Book(BaseModel):
     author: str
-    book_name: str
+    name: str
 
 
 class Education(Document):
     descriptions: str
-    courses: list[Course]
-    lections: list[Lection]
-    books: list[Book]
+    courses: list[Course] | None = None
+    lections: list[Lection] | None = None
+    books: list[Book] | None = None
 
     class Settings:
         use_state_management = True
@@ -84,6 +82,18 @@ class Skills(Document):
 
 class Hobbies(Document):
     descriptions: str
+
+    class Settings:
+        use_state_management = True
+
+
+class User(Document):
+    username: str | None = None
+    about: AboutMe | None = None
+    projects: list[Link[Projects]] | None = None
+    education: Link[Education] | None = None
+    skills: Link[Skills] | None = None
+    hobbies: Link[Hobbies] | None = None
 
     class Settings:
         use_state_management = True
