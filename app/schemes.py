@@ -1,4 +1,4 @@
-from beanie import Document, Link
+from beanie import Document, Link, BeanieObjectId
 from pydantic import BaseModel, EmailStr, HttpUrl
 from .db.models import (AboutMe, Projects, Education, Skills, Hobbies,
                      Links, Address, Tags, Course, Lection, Book)
@@ -54,13 +54,24 @@ class DeleteProject(BaseModel):
     name: str
 
 class ReprEducation(BaseModel):
+    id: BeanieObjectId
     descriptions: str
-    courses: list[Course] 
-    lections: list[Lection] 
-    books: list[Book] 
+    courses: list[Course] | None = []
+    lections: list[Lection] | None = []
+    books: list[Book] | None = []
 
 class CreateEducation(BaseModel):
     descriptions: str
-    courses: list[Course] | None = None
-    lections: list[Lection] | None = None
-    books: list[Book] | None = None
+
+
+class BaseUser(BaseModel):
+    username: str
+
+class CreateUser(BaseUser):
+    pass
+
+class ReprUser(BaseUser):
+    pass
+
+class GetUser(BaseModel):
+    username: str | None = None

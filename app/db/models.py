@@ -54,15 +54,15 @@ class Lection(BaseModel):
 
 
 class Book(BaseModel):
-    author: str
     name: str
-
-
+    author: str
+    
+    
 class Education(Document):
     descriptions: str
-    courses: list[Course] | None = None
-    lections: list[Lection] | None = None
-    books: list[Book] | None = None
+    courses: list[Course] | None = []
+    lections: list[Lection] | None = []
+    books: list[Book] | None = []
 
     class Settings:
         use_state_management = True
@@ -88,7 +88,7 @@ class Hobbies(Document):
 
 
 class User(Document):
-    username: str | None = None
+    username: str
     about: AboutMe | None = None
     projects: list[Link[Projects]] | None = None
     education: Link[Education] | None = None

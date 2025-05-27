@@ -1,6 +1,6 @@
-from typing import Any, Union
+from typing import Union
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import  HTTPException, status
 
 from .db.models import (User, AboutMe, Projects, Education, Skills, Hobbies,
                      Links, Address, Tags, Course, Lection, Book)
@@ -34,15 +34,16 @@ async def create_about():
     )
     return about
 
-def check_first_name(user_first_name: str | None = None):
-    if user_first_name == None:
-        user_first_name = 'Євгеній'
-    return user_first_name
+# def check_first_name(user_first_name: str | None = None):
+#     if user_first_name == None:
+#         user_first_name = 'Євгеній'
+#     return user_first_name
 
-def get_user(user_first_name: str | None = None):
+async def get_user(user_first_name: str | None = None):
     if user_first_name == None:
         user_first_name = 'Євгеній'
-    user = User.find_one(User.about.first_name == user_first_name,
+
+    user = await User.find_one(User.username == user_first_name,
                          fetch_links=True
                          )
     if not user:
@@ -50,7 +51,6 @@ def get_user(user_first_name: str | None = None):
                             detail=f"User with name {user_first_name} does not exist"
                             )
     return user
-
 
 async def get_updated_data(data: Union[list[Links], list[Address],
                                   list[Tags], list[Course],
@@ -63,7 +63,7 @@ async def get_updated_data(data: Union[list[Links], list[Address],
     if len(updated_data) == len(data):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"{data.__name__} with name {data_name} does not exist"
+            detail=f"Data with name {data_name} does not exist"
         )
     else:
         return updated_data
@@ -75,12 +75,14 @@ async def update_data(data: Union[list[Links], list[Address],
                 object_to_save: Union[User, AboutMe, Projects, Education, Skills, Hobbies],
                 data_name: str,
                 ):
+    if data_name is None:
+        data_name = new_data.name
     data_get = (data_db for data_db in data if data_db.name == data_name)
     try:
         data_db = next(data_get)
         for key, value in new_data.model_dump(exclude_none=True).items():
             setattr(data_db, key, value)
-        await data_db.save_changes()
+        await object_to_save.save_changes()
     except StopIteration:
         data.append(new_data)
         await object_to_save.save_changes()
