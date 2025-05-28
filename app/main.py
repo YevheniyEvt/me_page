@@ -1,14 +1,12 @@
-from typing import Annotated
 from logging import info
 
-from fastapi import FastAPI, Depends, Request
+from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
-from .routers import about_me, projects, study, user
+from .routers import about_me, projects, study, user, skills, hobbies
 from .settings import config
-from .db.models import (User, AboutMe, Projects, Education, Skills, Hobbies,
-                     Links, Address)
+from .db.models import User, AboutMe, Projects, Education, Skills, Hobbies
 
 
 
@@ -36,7 +34,8 @@ app.include_router(user.router)
 app.include_router(about_me.router)
 app.include_router(projects.router)
 app.include_router(study.router)
-
+app.include_router(skills.router)
+app.include_router(hobbies.router)
 
 @app.get("/")
 async def read_root():

@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, TypeVar
 
 from fastapi import  HTTPException, status
 
@@ -6,7 +6,7 @@ from .db.models import (User, AboutMe, Projects, Education, Skills, Hobbies,
                      Links, Address, Tags, Course, Lection, Book)
 
 
-async def create_about():
+async def create_about_evgeniy():
     descriptions = 'Привіт. Я Python-розробник початківець. Маю досвід роботи з Django, FastAPI, PostgreSQL Ubuntu, Docker. Люблю приймати нові виклики, вирішувати складні задачі. Наразі весь вільний час приділяю навчанню. Вивчаю python, алгоритми, нові інструменти для покращення своїх навичок програміста.'
     short_description = 'Наразі активно шукаю роботу, хочу долучитись до реальних проєктів та навчатись у досвідчених колег.'
     linkedin_url = 'https://www.linkedin.com/in/yevheniy-yevtushenko-660112319/'
@@ -34,10 +34,6 @@ async def create_about():
     )
     return about
 
-# def check_first_name(user_first_name: str | None = None):
-#     if user_first_name == None:
-#         user_first_name = 'Євгеній'
-#     return user_first_name
 
 async def get_user(user_first_name: str | None = None):
     if user_first_name == None:
@@ -52,13 +48,9 @@ async def get_user(user_first_name: str | None = None):
                             )
     return user
 
-async def get_updated_data(data: Union[list[Links], list[Address],
-                                  list[Tags], list[Course],
-                                  list[Lection], list[Book]],
-                                  data_name: str
-                                  )->Union[list[Links], list[Address],
-                                  list[Tags], list[Course],
-                                  list[Lection], list[Book]]:
+T = TypeVar('T', Links, Address, Tags, Course, Lection, Book)
+
+async def get_updated_data(data: list[T], data_name: str)->list[T]:
     updated_data = [value for value in data if value.name != data_name]
     if len(updated_data) == len(data):
         raise HTTPException(
@@ -80,9 +72,12 @@ async def update_data(data: Union[list[Links], list[Address],
     data_get = (data_db for data_db in data if data_db.name == data_name)
     try:
         data_db = next(data_get)
-        for key, value in new_data.model_dump(exclude_none=True).items():
-            setattr(data_db, key, value)
-        await object_to_save.save_changes()
     except StopIteration:
+        print(data)
         data.append(new_data)
+        await object_to_save.save_changes()
+    else:
+        new_data_items = new_data.model_dump(exclude_none=True).items()
+        for key, value in new_data_items:
+            setattr(data_db, key, value)
         await object_to_save.save_changes()

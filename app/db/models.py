@@ -17,16 +17,16 @@ class Projects(Document):
     name: str
     descriptions: str
     instruments: str
-    tags: list[Tags] | None = None
-    links: list[Links] | None = None
+    tags: list[Tags] | None = []
+    links: list[Links] | None = []
 
     class Settings:
         use_state_management = True
 
 
 class Address(BaseModel):
-    city: str
-    country: str
+    city: str | None = None
+    country: str | None = None
 
 
 class AboutMe(Document):
@@ -36,8 +36,8 @@ class AboutMe(Document):
     short_description: str
     email: EmailStr
     address: Address | None = None
-    links: list[Links] | None = None
-    projects: list[Link[Projects]] | None = None
+    links: list[Links] | None = []
+
 
     class Settings:
         use_state_management = True
@@ -71,10 +71,12 @@ class Education(Document):
 class WorkFlow(BaseModel):
     name: str
 
+class Instrument(BaseModel):
+    name: str
 
 class Skills(Document):
-    workflows: list[WorkFlow]
-    instrument: str
+    workflows: list[WorkFlow] | None = []
+    instruments: list[Instrument] | None = []
 
     class Settings:
         use_state_management = True

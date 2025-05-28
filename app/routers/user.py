@@ -1,17 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from typing import Annotated
-from logging import info
 
-from fastapi import FastAPI, Depends, Request
-from contextlib import asynccontextmanager
-from motor.motor_asyncio import AsyncIOMotorClient
-from beanie import init_beanie, WriteRules
-from beanie.operators import Pull
+from fastapi import Depends
 
-from ..dependencies import check_first_name, get_user, get_updated_data, update_data
-from ..schemes import ReprProject, UpdateProject, CreateProject, DeleteProject, ReprEducation, CreateEducation, CreateUser, ReprUser, GetUser
-from ..db.models import (User, AboutMe, Projects, Education, Skills, Hobbies,
-                     Links, Address, Tags, Course, Lection, Book)
+from ..dependencies import get_user
+from ..schemes import CreateUser, GetUser
+from ..db.models import User
 
 
 router = APIRouter(

@@ -3,9 +3,9 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, status, Depends
 
 
-from ..dependencies import create_about, get_user, update_data, get_updated_data
+from ..dependencies import create_about_evgeniy, get_user, update_data, get_updated_data
 from ..schemes import UpdateAboutMe, CreateAboutMe, ReprAboutMe
-from ..db.models import AboutMe, Links, User
+from ..db.models import AboutMe, Links, User, Address
 
 router = APIRouter(
     prefix='/about',
@@ -26,19 +26,13 @@ async def about(user: Annotated[User, Depends(get_user)])->ReprAboutMe:
 
 @router.post('/create', status_code=status.HTTP_201_CREATED)
 async def create_about(user: Annotated[User, Depends(get_user)],
-                       about: CreateAboutMe)->ReprAboutMe:
-    if about.first_name == 'Євгеній':
-        about_db = create_about()
-    else:
-        about_db = AboutMe(**about.model_dump())
-    await about_db.create()
-    
+                       about: CreateAboutMe)->ReprAboutMe | dict:    
     try:
         user.about.model_dump()
         return {'msg': f'AboutMe for user {user.username} already exist'}
     except AttributeError:
         if about.first_name == 'Євгеній':
-            about_db = create_about()
+            about_db = await create_about_evgeniy()
         else:
             about_db = AboutMe(**about.model_dump())
         await about_db.save()
@@ -86,3 +80,35 @@ async def delete_link(user: Annotated[User, Depends(get_user)],
     about_db.links = updated_links
     await about_db.save_changes()
     return about_db.links
+
+@router.post('/update-address')
+async def update_or_add_address(user: Annotated[User, Depends(get_user)],
+                                       address: Address):
+    about_db = user.about
+    address_db = about_db.address
+    try:
+        address_db.model_dump()
+    except AttributeError:
+        address_create = Address(**address.model_dump())
+        about_db.address = address_create
+        await about_db.save_changes()
+    else:
+        update_data = address.model_dump(exclude_none=True)
+        for key, value in update_data.items():
+            setattr(about_db.address, key, value)
+        await about_db.save_changes()
+
+@router.delete('/delete-address/{name}')
+async def delete_address(user: Annotated[User, Depends(get_user)]):
+    about_db = user.about
+    address = about_db.address
+    if address is not None:
+        about_db.address = None
+        await about_db.save_changes()
+        return {'msg': f'Address for user {user.username} was deleted'}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Address for user {user.username} does not exist"
+        )
+    

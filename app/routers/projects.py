@@ -62,11 +62,12 @@ async def delete_project(user: Annotated[User, Depends(get_user)],
 @router.post('/update-link')
 async def update_or_add_link(user: Annotated[User, Depends(get_user)],
                              link: Links,
-                             name: str | None = None,
-                            ) ->list[Links]:
+                             name_project: str,
+                             name_link: str | None = None,
+                            ) ->list[Links] | dict:
     projects_db = user.projects
     links = projects_db.links
-    await update_data(data=links, new_data=link, object_to_save=projects_db, data_name=name)
+    await update_data(data=links, new_data=link, object_to_save=projects_db, data_name=name_link)
     return projects_db.links
 
 @router.delete('/delete-link')
@@ -81,11 +82,12 @@ async def delete_link(user: Annotated[User, Depends(get_user)],
 @router.post('/update-tag')
 async def update_or_add_tag(user: Annotated[User, Depends(get_user)],
                             tag: Tags,
-                            name: str | None = None,
+                            name_project: str,
+                            name_tag: str | None = None,
                             ) ->list[Tags]:
     projects_db = user.projects
     tags = projects_db.tags
-    await update_data(data=tags, new_data=tag, object_to_save=projects_db, data_name=name)
+    await update_data(data=tags, new_data=tag, object_to_save=projects_db, data_name=name_tag)
     return projects_db.tags
 
 @router.delete('/delete-tag/{name}')
