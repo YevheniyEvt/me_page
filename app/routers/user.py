@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from typing import Annotated
 
 from fastapi import Depends
@@ -14,10 +14,10 @@ router = APIRouter(
 )
 
 @router.get('/')
-async def user_information(user: Annotated[GetUser, Depends(get_user)]):
+async def user_information(user: Annotated[GetUser, Depends(get_user)])->User:
     return user
 
-@router.post('/create')
+@router.post('/create', status_code=status.HTTP_201_CREATED)
 async def create_user(user: CreateUser):
     user_create = User(**user.model_dump())
     await user_create.save()

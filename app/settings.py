@@ -6,5 +6,7 @@ class Config(BaseSettings):
     database_url: str
     databases_user: str
     databases_password: str
+    test_database_url: str
+    test_database_name: str
 
 config = Config()

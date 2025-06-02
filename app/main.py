@@ -1,41 +1,19 @@
-from logging import info
-
 from fastapi import FastAPI
-from contextlib import asynccontextmanager
-from motor.motor_asyncio import AsyncIOMotorClient
-from beanie import init_beanie
+
 from .routers import about_me, projects, study, user, skills, hobbies
-from .settings import config
-from .db.models import User, AboutMe, Projects, Education, Skills, Hobbies
+from app.db.database import lifespan
 
+def get_app(lifespan):
+    app = FastAPI(lifespan=lifespan)
+    app.include_router(user.router)
+    app.include_router(about_me.router)
+    app.include_router(projects.router)
+    app.include_router(study.router)
+    app.include_router(skills.router)
+    app.include_router(hobbies.router)
+    return app
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    
-    app.mongodb_client  = AsyncIOMotorClient(config.database_url)
-    app.database = app.mongodb_client.get_default_database()
-    ping_response = await app.database.command("ping")
-    
-    if int(ping_response["ok"]) != 1:
-        raise Exception("Problem connecting to database cluster.")
-    else:
-        info("Connected to database cluster.")
-    await init_beanie(
-        database=app.database,
-        document_models=[User, AboutMe, Projects, Education, Skills, Hobbies]
-        )
-    yield
-    app.mongodb_client.close()
-
-app = FastAPI(lifespan=lifespan)
-
-app.include_router(user.router)
-app.include_router(about_me.router)
-app.include_router(projects.router)
-app.include_router(study.router)
-app.include_router(skills.router)
-app.include_router(hobbies.router)
+app = get_app(lifespan=lifespan)
 
 @app.get("/")
 async def read_root():

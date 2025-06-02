@@ -173,3 +173,4 @@ cloudinary
 
 .env
 docker-compose-develop.yml
+check_db.py
