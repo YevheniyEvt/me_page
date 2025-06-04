@@ -26,10 +26,14 @@ async def about(user: Annotated[User, Depends(get_user)])->ReprAboutMe:
 
 @router.post('/create', status_code=status.HTTP_201_CREATED)
 async def create_about(user: Annotated[User, Depends(get_user)],
-                       about: CreateAboutMe)->ReprAboutMe | dict:    
+                       about: CreateAboutMe)->ReprAboutMe:    
     try:
         user.about.model_dump()
-        return {'msg': f'AboutMe for user {user.username} already exist'}
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f'AboutMe for user {user.username} already exist'
+        )
+
     except AttributeError:
         if about.first_name == 'Євгеній':
             about_db = await create_about_evgeniy()
@@ -45,23 +49,34 @@ async def update_about(about: UpdateAboutMe,
                        user: Annotated[User, Depends(get_user)],
                        ) ->ReprAboutMe:
     about_db = user.about
+    if about_db is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'AboutMe for user {user.username} does not exist'
+        )
     update_data = about.model_dump(exclude_none=True)
     for key, value in update_data.items():
         setattr(about_db, key, value)
-    await about_db.save_changes()
+    await about_db.save()
+    await user.save_changes()
     return about_db
 
 @router.delete('/delete')
 async def delete_about(user: Annotated[User, Depends(get_user)]):
-    try:
-        await user.about.delete()
-        return {'msg': f'AboutMe for user {user.username} was deleted'}
-    except AttributeError:
+
+    about = user.about
+    if about is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"AboutMe for user {user.username} does not exist"
         )
     
+    await about.delete()
+    user.about = None
+    await user.save_changes()
+    return {'msg': f'AboutMe for user {user.username} was deleted'}
+
+        
 @router.post('/update-link')
 async def update_or_add_link(user: Annotated[User, Depends(get_user)],
                              link: Links,
@@ -74,12 +89,11 @@ async def update_or_add_link(user: Annotated[User, Depends(get_user)],
 
 @router.delete('/delete-link/{name}')
 async def delete_link(user: Annotated[User, Depends(get_user)],
-                      name: str) ->list[Links]:
+                      name: str):
     about_db = user.about
     updated_links = await get_updated_data(data=about_db.links, data_name=name)
     about_db.links = updated_links
-    await about_db.save_changes()
-    return about_db.links
+    await about_db.save()
 
 @router.post('/update-address')
 async def update_or_add_address(user: Annotated[User, Depends(get_user)],
@@ -96,7 +110,7 @@ async def update_or_add_address(user: Annotated[User, Depends(get_user)],
         update_data = address.model_dump(exclude_none=True)
         for key, value in update_data.items():
             setattr(about_db.address, key, value)
-        await about_db.save_changes()
+        await about_db.save()
 
 @router.delete('/delete-address/{name}')
 async def delete_address(user: Annotated[User, Depends(get_user)]):

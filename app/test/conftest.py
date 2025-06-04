@@ -8,6 +8,7 @@ from beanie import init_beanie
 from ..settings import config
 from app.db.models import User, AboutMe, Projects, Education, Skills, Hobbies
 from app.main import get_app
+from app.dependencies import create_about_evgeniy
 
 
 @pytest.fixture(scope="session")
@@ -38,8 +39,15 @@ async def client_fixture():
 @pytest.fixture(name='create_user')
 async def create_user():
     user_create = User(username='Євгеній')
-    await user_create.save()
+    await user_create.create()
+    
+    return user_create
 
-        
-
+@pytest.fixture(name='create_about')
+async def create_about(create_user: User):
+    about = await create_about_evgeniy()
+    await about.save()
+    create_user.about = about
+    await create_user.save_changes()
+    
     

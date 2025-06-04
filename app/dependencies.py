@@ -73,11 +73,10 @@ async def update_data(data: Union[list[Links], list[Address],
     try:
         data_db = next(data_get)
     except StopIteration:
-        print(data)
         data.append(new_data)
-        await object_to_save.save_changes()
+        await object_to_save.save()
     else:
         new_data_items = new_data.model_dump(exclude_none=True).items()
         for key, value in new_data_items:
             setattr(data_db, key, value)
-        await object_to_save.save_changes()
+        await object_to_save.save()

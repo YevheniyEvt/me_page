@@ -9,7 +9,9 @@ from app.db.models import User, AboutMe, Projects, Education, Skills, Hobbies
 @pytest.mark.anyio
 async def test_create_user(async_client: AsyncClient):
     response = await async_client.post('/user/create', json={'username': 'Євгеній'})
+    user = User.find_one(User.username=='Євгеній')
     assert response.status_code == 201
+    assert user is not None
 
 
 @pytest.mark.anyio
