@@ -6,10 +6,12 @@ from app import schemes
 from app import dependencies
 from app.db.models import User, AboutMe, Projects, Education, Skills, Hobbies
 
+USERNAME = 'Євгеній'
+
 @pytest.mark.anyio
 async def test_create_user(async_client: AsyncClient):
-    response = await async_client.post('/user/create', json={'username': 'Євгеній'})
-    user = User.find_one(User.username=='Євгеній')
+    response = await async_client.post('/user/create', json={'username': USERNAME})
+    user = User.find_one(User.username==USERNAME)
     assert response.status_code == 201
     assert user is not None
 
@@ -18,8 +20,6 @@ async def test_create_user(async_client: AsyncClient):
 async def test_user_information(async_client: AsyncClient, create_user):
     response = await async_client.get('/user/')
     assert response.status_code == 200
-    assert response.json()['username'] == 'Євгеній'
+    assert response.json()['username'] == USERNAME
     assert response.json()['about'] == None
 
-
-{'_id': '683e0034b84ae8db5403e420', 'username': 'Євгеній', 'about': None, 'projects': [], 'education': None, 'skills': None, 'hobbies': None}

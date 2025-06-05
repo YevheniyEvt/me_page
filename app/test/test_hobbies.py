@@ -7,6 +7,8 @@ from app import schemes
 from app import dependencies
 from app.db.models import User, AboutMe, Projects, Education, Skills, Hobbies
 
+USERNAME = 'Євгеній'
+
 @pytest.mark.anyio
 async def test_get_hobbies_information(async_client: AsyncClient, create_hobbies: Hobbies):
     response = await async_client.get('/hobbies/')
@@ -30,10 +32,10 @@ async def test_create_hobbies_information(async_client: AsyncClient, create_user
 
 
 @pytest.mark.anyio
-async def test_update_hobbies_information(async_client: AsyncClient, create_user: User, create_hobbies: Hobbies):
+async def test_update_hobbies_information(async_client: AsyncClient, create_hobbies: Hobbies):
     response = await async_client.put('/hobbies/update',
                                        json={'descriptions': 'Hello test'})
-    user = await User.find_one(User.username == create_user.username, fetch_links=True)
+    user = await User.find_one(User.username == USERNAME, fetch_links=True)
     hobbies = user.hobbies
     assert response.status_code == 200
     assert response.json()['descriptions'] == 'Hello test'
@@ -47,9 +49,9 @@ async def test_update_hobbies_information_not_exist(async_client: AsyncClient, c
     assert response.json()['detail'] == f"Hobbies for user {create_user.username} does not exist"
 
 @pytest.mark.anyio
-async def test_delete_hobbies_information(async_client: AsyncClient, create_user: User, create_hobbies: Hobbies):
+async def test_delete_hobbies_information(async_client: AsyncClient, create_hobbies: Hobbies):
     response = await async_client.delete('/hobbies/delete')
-    user = await User.find_one(User.username == create_user.username, fetch_links=True)
+    user = await User.find_one(User.username == USERNAME, fetch_links=True)
     hobbies = user.hobbies
     assert response.status_code == 200
     assert hobbies is None

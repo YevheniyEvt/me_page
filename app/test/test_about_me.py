@@ -7,11 +7,13 @@ from app import schemes
 from app import dependencies
 from app.db.models import User, AboutMe, Projects, Education, Skills, Hobbies
 
+USERNAME = 'Євгеній'
+
 @pytest.mark.anyio
 async def test_get_about_without_name(async_client: AsyncClient, create_about):
     response = await async_client.get('/about/')
     assert response.status_code == 200
-    assert response.json()['first_name'] == 'Євгеній'
+    assert response.json()['first_name'] == USERNAME
 
 @pytest.mark.anyio
 async def test_get_about_username_not_exist(async_client: AsyncClient, create_about):
@@ -29,7 +31,7 @@ async def test_get_about_not_exist(async_client: AsyncClient, create_user):
 async def test_create_about(async_client: AsyncClient, create_user):
     response = await async_client.post('/about/create',
                                        json={
-                                            "first_name": "Євгеній",
+                                            "first_name": USERNAME,
                                             "second_name": "string",
                                             "descriptions": "string",
                                             "short_description": "string",
@@ -44,7 +46,7 @@ async def test_create_about(async_client: AsyncClient, create_user):
 async def test_create_about_already_created(async_client: AsyncClient, create_about):
     response = await async_client.post('/about/create',
                                        json={
-                                            "first_name": "Євгеній",
+                                            "first_name": USERNAME,
                                             "second_name": "string",
                                             "descriptions": "string",
                                             "short_description": "string",
@@ -96,7 +98,7 @@ async def test_delete_about(async_client: AsyncClient, create_about):
 async def test_delete_about_not_exist(async_client: AsyncClient, create_user):
     response = await async_client.delete('/about/delete')
     assert response.status_code == 404
-    assert response.json()['detail'] == 'AboutMe for user Євгеній does not exist'
+    assert response.json()['detail'] == f'AboutMe for user {USERNAME} does not exist'
 
 @pytest.mark.anyio
 async def test_update_or_add_link_name_is_None(async_client: AsyncClient, create_about):
@@ -105,7 +107,7 @@ async def test_update_or_add_link_name_is_None(async_client: AsyncClient, create
                                      "name": "test",
                                      "url": "https://example.com/"
                                     })
-    about = await AboutMe.find_one(AboutMe.first_name == 'Євгеній')
+    about = await AboutMe.find_one(AboutMe.first_name == USERNAME)
     assert response.status_code == 200
     assert any(link.name == 'test' for link in about.links)
     assert len(about.links) == len(response.json())
@@ -118,7 +120,7 @@ async def test_update_or_add_link_with_name(async_client: AsyncClient, create_ab
                                      "url": "https://example.com/"
                                     },
                                     params={'name': 'linkedin'})
-    about = await AboutMe.find_one(AboutMe.first_name == 'Євгеній')
+    about = await AboutMe.find_one(AboutMe.first_name == USERNAME)
     assert response.status_code == 200
     assert len(about.links) == len(response.json())
     assert any(link.name == 'linkedin' and link.url == HttpUrl('https://example.com/') for link in about.links)
@@ -126,7 +128,7 @@ async def test_update_or_add_link_with_name(async_client: AsyncClient, create_ab
 @pytest.mark.anyio
 async def test_delete_link(async_client: AsyncClient, create_about):   
     response = await async_client.delete('/about/delete-link/linkedin')
-    about = await AboutMe.find_one(AboutMe.first_name == 'Євгеній')
+    about = await AboutMe.find_one(AboutMe.first_name == USERNAME)
     assert response.status_code == 200
     assert not any(link.name == 'linkedin' for link in about.links)
 
@@ -137,24 +139,24 @@ async def test_update_address(async_client: AsyncClient, create_about):
                                      "city": "test_city",
                                      "country": "test_country"
                                     })
-    about = await AboutMe.find_one(AboutMe.first_name == 'Євгеній')
+    about = await AboutMe.find_one(AboutMe.first_name == USERNAME)
     assert response.status_code == 200
     assert about.address.city == "test_city"
     assert about.address.country == "test_country"
 
 @pytest.mark.anyio
 async def test_add_address(async_client: AsyncClient, create_about):
-    about = await AboutMe.find_one(AboutMe.first_name == 'Євгеній')
+    about = await AboutMe.find_one(AboutMe.first_name == USERNAME)
     about.address = None
     await about.save_changes()
-    about = await AboutMe.find_one(AboutMe.first_name == 'Євгеній')
+    about = await AboutMe.find_one(AboutMe.first_name == USERNAME)
     assert about.address is None
     response = await async_client.post('/about/update-address',
                                  json={
                                      "city": "test_city",
                                      "country": "test_country"
                                     })
-    about = await AboutMe.find_one(AboutMe.first_name == 'Євгеній')
+    about = await AboutMe.find_one(AboutMe.first_name == USERNAME)
     assert response.status_code == 200
     assert about.address.city == "test_city"
     assert about.address.country == "test_country"
@@ -162,6 +164,6 @@ async def test_add_address(async_client: AsyncClient, create_about):
 @pytest.mark.anyio
 async def test_delete_address(async_client: AsyncClient, create_about):
     response = await async_client.delete('/about/delete-address')
-    about = await AboutMe.find_one(AboutMe.first_name == 'Євгеній')
+    about = await AboutMe.find_one(AboutMe.first_name == USERNAME)
     assert response.status_code == 200
     assert about.address is None
