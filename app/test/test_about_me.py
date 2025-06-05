@@ -129,3 +129,39 @@ async def test_delete_link(async_client: AsyncClient, create_about):
     about = await AboutMe.find_one(AboutMe.first_name == 'Євгеній')
     assert response.status_code == 200
     assert not any(link.name == 'linkedin' for link in about.links)
+
+@pytest.mark.anyio
+async def test_update_address(async_client: AsyncClient, create_about):
+    response = await async_client.post('/about/update-address',
+                                 json={
+                                     "city": "test_city",
+                                     "country": "test_country"
+                                    })
+    about = await AboutMe.find_one(AboutMe.first_name == 'Євгеній')
+    assert response.status_code == 200
+    assert about.address.city == "test_city"
+    assert about.address.country == "test_country"
+
+@pytest.mark.anyio
+async def test_add_address(async_client: AsyncClient, create_about):
+    about = await AboutMe.find_one(AboutMe.first_name == 'Євгеній')
+    about.address = None
+    await about.save_changes()
+    about = await AboutMe.find_one(AboutMe.first_name == 'Євгеній')
+    assert about.address is None
+    response = await async_client.post('/about/update-address',
+                                 json={
+                                     "city": "test_city",
+                                     "country": "test_country"
+                                    })
+    about = await AboutMe.find_one(AboutMe.first_name == 'Євгеній')
+    assert response.status_code == 200
+    assert about.address.city == "test_city"
+    assert about.address.country == "test_country"
+
+@pytest.mark.anyio
+async def test_delete_address(async_client: AsyncClient, create_about):
+    response = await async_client.delete('/about/delete-address')
+    about = await AboutMe.find_one(AboutMe.first_name == 'Євгеній')
+    assert response.status_code == 200
+    assert about.address is None

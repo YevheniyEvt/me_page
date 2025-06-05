@@ -112,13 +112,13 @@ async def update_or_add_address(user: Annotated[User, Depends(get_user)],
             setattr(about_db.address, key, value)
         await about_db.save()
 
-@router.delete('/delete-address/{name}')
+@router.delete('/delete-address')
 async def delete_address(user: Annotated[User, Depends(get_user)]):
     about_db = user.about
     address = about_db.address
     if address is not None:
         about_db.address = None
-        await about_db.save_changes()
+        await about_db.save()
         return {'msg': f'Address for user {user.username} was deleted'}
     else:
         raise HTTPException(
