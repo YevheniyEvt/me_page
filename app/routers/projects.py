@@ -31,33 +31,35 @@ async def create_project(project: CreateProject,
     project_created = Projects(**project.model_dump())
     project_created.tags = tags
     await project_created.save()
-
     user.projects.append(project_created)
     await user.save_changes()
     return project_created
 
-@router.put('/update')
+@router.put('/update/{name}')
 async def update_project(user: Annotated[User, Depends(get_user)],
                          project: UpdateProject,
-                         name: str | None = None,)->list[ReprProject]:
-    if len(user.projects) == 0:
+                         name: str,
+                         )->list[ReprProject]:
+    user_projects = user.projects
+    if not any(project for project in user_projects if project.name == name):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Projects for user {user.username} does not exist"
         )
     else:
         projects_db = user.projects
-        await update_data(data=projects_db, new_data=project, object_to_save=projects_db, data_name=name)
+        await update_data(data=projects_db, new_data=project, data_name=name)
+        await user.save_changes()
         return projects_db
 
-@router.delete('/delete')
+@router.delete('/delete/{name}')
 async def delete_project(user: Annotated[User, Depends(get_user)],
-                         name: str | None = None)->list[ReprProject]:
+                         name: str):
     projects_db = user.projects
     updated_projects = await get_updated_data(data=projects_db, data_name=name)
     user.projects = updated_projects
     await user.save_changes()
-    return user.projects
+
 
 @router.post('/update-link')
 async def update_or_add_link(user: Annotated[User, Depends(get_user)],

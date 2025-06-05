@@ -10,6 +10,7 @@ from app.db.models import User, AboutMe, Projects, Education, Skills, Hobbies
 from app.main import get_app
 from app.dependencies import create_about_evgeniy
 
+USERNAME = 'Євгеній'
 
 @pytest.fixture(scope="session")
 def anyio_backend():
@@ -38,7 +39,7 @@ async def client_fixture():
 
 @pytest.fixture(name='create_user')
 async def create_user():
-    user_create = User(username='Євгеній')
+    user_create = User(username=USERNAME)
     await user_create.create()
     return user_create
 
@@ -56,3 +57,14 @@ async def create_hobbies(create_user: User):
     create_user.hobbies = hobbies
     await create_user.save_changes()
     return hobbies
+
+@pytest.fixture(name='create_projects')
+async def create_projects(create_user: User):
+    project_created = Projects(
+        name='created project name',
+        descriptions='created project descriptions',
+        instruments='created project instruments',
+    )
+    create_user.projects.append(project_created)
+    await create_user.save_changes()
+    return project_created
