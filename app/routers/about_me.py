@@ -74,8 +74,6 @@ async def delete_about(user: Annotated[User, Depends(get_user)]):
     await about.delete()
     user.about = None
     await user.save_changes()
-    return {'msg': f'AboutMe for user {user.username} was deleted'}
-
         
 @router.post('/update-link')
 async def update_or_add_link(user: Annotated[User, Depends(get_user)],

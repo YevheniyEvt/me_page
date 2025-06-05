@@ -40,7 +40,6 @@ async def client_fixture():
 async def create_user():
     user_create = User(username='Євгеній')
     await user_create.create()
-    
     return user_create
 
 @pytest.fixture(name='create_about')
@@ -50,4 +49,10 @@ async def create_about(create_user: User):
     create_user.about = about
     await create_user.save_changes()
     
-    
+@pytest.fixture(name='create_hobbies')
+async def create_hobbies(create_user: User):
+    hobbies = Hobbies(descriptions='I like to write a code')
+    await hobbies.save()
+    create_user.hobbies = hobbies
+    await create_user.save_changes()
+    return hobbies
