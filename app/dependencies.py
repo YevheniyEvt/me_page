@@ -1,6 +1,7 @@
-from typing import Union, TypeVar
+from typing import Union, TypeVar, Annotated
+from beanie import BeanieObjectId
 
-from fastapi import  HTTPException, status
+from fastapi import  HTTPException, status, Depends
 
 from .db.models import (User, AboutMe, Projects, Education, Skills, Hobbies,
                      Links, Address, Tags, Course, Lection, Book)
@@ -63,9 +64,9 @@ async def get_updated_data(data: list[T], data_name: str)->list[T]:
 async def update_data(data: Union[list[Links], list[Address],
                                   list[Tags], list[Course],
                                   list[Lection], list[Book]],
-                new_data: Union[Links, Address, Tags, Course, Lection, Book],
-                object_to_save: Union[User, AboutMe, Projects, Education, Skills, Hobbies],
-                data_name: str,
+                new_data: Links | Address | Tags | Course | Lection | Book | None,
+                data_name: str | None,
+                object_to_save: User | AboutMe | Projects | Education | Skills | Hobbies | None = None,
                 ):
     if data_name is None:
         data_name = new_data.name
@@ -79,4 +80,17 @@ async def update_data(data: Union[list[Links], list[Address],
         new_data_items = new_data.model_dump(exclude_none=True).items()
         for key, value in new_data_items:
             setattr(data_db, key, value)
+        if object_to_save is None:
+            object_to_save = data_db
         await object_to_save.save()
+
+
+async def get_project(user: Annotated[User, Depends(get_user)],
+                      project_id: BeanieObjectId) ->Projects:
+    project = await Projects.find_one(Projects.id == project_id)
+    user_projects = user.projects
+    projects_db = any(project_db for project_db in user_projects if project_db.name == project.name)
+    if project is None or not projects_db: 
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Project with id {project_id} for user {user.username} does not exist")
+    return project

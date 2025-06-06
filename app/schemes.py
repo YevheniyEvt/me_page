@@ -36,8 +36,8 @@ class BaseProject(BaseModel):
     
 
 class ReprProject(BaseProject):
-    tags: list[Tags] | None = None
-    links: list[Links] | None = None
+    tags: list[Tags] | list = []
+    links: list[Links] | list = []
 
 
 class CreateProject(BaseProject):
@@ -51,6 +51,9 @@ class UpdateProject(BaseModel):
 
 
 class DeleteProject(BaseModel):
+    name: str
+
+class DeleteTag(BaseModel):
     name: str
 
 class ReprEducation(BaseModel):

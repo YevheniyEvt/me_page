@@ -92,7 +92,7 @@ class Hobbies(Document):
 class User(Document):
     username: str
     about: AboutMe | None = None
-    projects: list[Link[Projects]] | None = None
+    projects: list[Link[Projects]] | None = []
     education: Link[Education] | None = None
     skills: Link[Skills] | None = None
     hobbies: Link[Hobbies] | None = None
