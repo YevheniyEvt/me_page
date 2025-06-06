@@ -1,4 +1,7 @@
 import pytest
+
+from typing import AsyncGenerator
+
 from httpx import ASGITransport, AsyncClient
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
@@ -29,7 +32,7 @@ async def lifespan(app: FastAPI):
     app.mongodb_client.close()
 
 @pytest.fixture(name='async_client')
-async def client_fixture():
+async def client_fixture()-> AsyncGenerator[AsyncClient]:
     app = get_app(lifespan=lifespan)
     async with app.router.lifespan_context(app):
         async with AsyncClient(
@@ -38,7 +41,7 @@ async def client_fixture():
             yield async_client
 
 @pytest.fixture(name='create_user')
-async def create_user():
+async def create_user()-> User:
     user_create = User(username=USERNAME)
     await user_create.create()
     return user_create
@@ -51,16 +54,15 @@ async def create_about(create_user: User):
     await create_user.save_changes()
     
 @pytest.fixture(name='create_hobbies')
-async def create_hobbies(create_user: User):
+async def create_hobbies(create_user: User)-> Hobbies:
     hobbies = Hobbies(descriptions='I like to write a code')
     await hobbies.save()
     create_user.hobbies = hobbies
     await create_user.save_changes()
     return hobbies
 
-
 @pytest.fixture(name='create_projects')
-async def create_projects(create_user: User):
+async def create_projects(create_user: User)-> Projects:
     tag = Tags(
         name='created tag name',
         description='created tag descriptions',

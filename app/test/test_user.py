@@ -1,12 +1,10 @@
 import pytest
-from fastapi.testclient import TestClient
-from httpx import AsyncClient
-from app.db import models
-from app import schemes
-from app import dependencies
-from app.db.models import User, AboutMe, Projects, Education, Skills, Hobbies
 
-USERNAME = 'Євгеній'
+from httpx import AsyncClient
+
+
+from app.db.models import User
+from app.test.conftest import USERNAME
 
 @pytest.mark.anyio
 async def test_create_user(async_client: AsyncClient):
@@ -17,7 +15,7 @@ async def test_create_user(async_client: AsyncClient):
 
 
 @pytest.mark.anyio
-async def test_user_information(async_client: AsyncClient, create_user):
+async def test_user_information(async_client: AsyncClient, create_user: User):
     response = await async_client.get('/user/')
     assert response.status_code == 200
     assert response.json()['username'] == USERNAME

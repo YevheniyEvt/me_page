@@ -38,8 +38,7 @@ async def create_hobbies_information(user: Annotated[User, Depends(get_user)],
 
 @router.put('/update')
 async def update_hobbies_information(user: Annotated[User, Depends(get_user)],
-                                       hobbies: Hobbies
-                                       )->Hobbies:
+                                       hobbies: Hobbies)->Hobbies:
     hobbies_db = user.hobbies
     if hobbies_db is None:
         raise HTTPException(

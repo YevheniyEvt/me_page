@@ -27,8 +27,7 @@ async def my_projects(user: Annotated[User, Depends(get_user)])->list[ReprProjec
 @router.post('/create', status_code=status.HTTP_201_CREATED)
 async def create_project(project: CreateProject,
                         tags: list[Tags],
-                        user: Annotated[User, Depends(get_user)]
-                         )->ReprProject:
+                        user: Annotated[User, Depends(get_user)])->ReprProject:
     project_created = Projects(**project.model_dump())
     project_created.tags = tags
     await project_created.save()
@@ -39,8 +38,7 @@ async def create_project(project: CreateProject,
 @router.put('/update/{name}')
 async def update_project(user: Annotated[User, Depends(get_user)],
                          project: UpdateProject,
-                         name: str,
-                         )->list[ReprProject]:
+                         name: str)->list[ReprProject]:
     user_projects = user.projects
     if not any(project for project in user_projects if project.name == name):
         raise HTTPException(
@@ -65,8 +63,7 @@ async def delete_project(user: Annotated[User, Depends(get_user)],
 @router.post('/update-link/{project_id}')
 async def update_or_add_link(project: Annotated[Projects, Depends(get_project)],
                              link: Links,
-                             name_link: str | None = None,
-                            ) ->list[Links] | dict:
+                             name_link: str | None = None) ->list[Links] | dict:
     links = project.links
     await update_data(data=links, new_data=link, object_to_save=project, data_name=name_link)
     return project.links
@@ -82,8 +79,7 @@ async def delete_link(project: Annotated[Projects, Depends(get_project)],
 @router.post('/update-tag/{project_id}')
 async def update_or_add_tag(project: Annotated[Projects, Depends(get_project)],
                             tag: Tags,
-                            name_tag: str | None = None,
-                            ) ->list[Tags]:
+                            name_tag: str | None = None) ->list[Tags]:
     tags = project.tags
     await update_data(data=tags, new_data=tag, object_to_save=project, data_name=name_tag)
     return project.tags

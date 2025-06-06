@@ -1,6 +1,8 @@
 import pytest
+
 from pydantic import HttpUrl
 from httpx import AsyncClient
+
 
 from app.db.models import User, Projects
 from app.test.conftest import USERNAME

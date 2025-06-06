@@ -95,7 +95,7 @@ async def delete_link(user: Annotated[User, Depends(get_user)],
 
 @router.post('/update-address')
 async def update_or_add_address(user: Annotated[User, Depends(get_user)],
-                                       address: Address):
+                                address: Address):
     about_db = user.about
     address_db = about_db.address
     try:
