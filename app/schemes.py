@@ -53,6 +53,9 @@ class UpdateProject(BaseModel):
 class DeleteProject(BaseModel):
     name: str
 
+class DeleteTag(BaseModel):
+    name: str
+
 class ReprEducation(BaseModel):
     id: BeanieObjectId
     descriptions: str

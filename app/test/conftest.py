@@ -6,7 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 
 from ..settings import config
-from app.db.models import User, AboutMe, Projects, Education, Skills, Hobbies
+from app.db.models import User, AboutMe, Projects, Education, Skills, Hobbies, Tags, Links
 from app.main import get_app
 from app.dependencies import create_about_evgeniy
 
@@ -58,13 +58,25 @@ async def create_hobbies(create_user: User):
     await create_user.save_changes()
     return hobbies
 
+
 @pytest.fixture(name='create_projects')
 async def create_projects(create_user: User):
+    tag = Tags(
+        name='created tag name',
+        description='created tag descriptions',
+    )
+    link = Links(
+        name='created link name',
+        url='https://created.com/',
+    )
     project_created = Projects(
         name='created project name',
         descriptions='created project descriptions',
         instruments='created project instruments',
+        tags=[tag],
+        links=[link]
     )
+    await project_created.create()
     create_user.projects.append(project_created)
     await create_user.save_changes()
     return project_created

@@ -1,6 +1,7 @@
-from typing import Union, TypeVar
+from typing import Union, TypeVar, Annotated
+from beanie import BeanieObjectId
 
-from fastapi import  HTTPException, status
+from fastapi import  HTTPException, status, Depends
 
 from .db.models import (User, AboutMe, Projects, Education, Skills, Hobbies,
                      Links, Address, Tags, Course, Lection, Book)
@@ -82,3 +83,14 @@ async def update_data(data: Union[list[Links], list[Address],
         if object_to_save is None:
             object_to_save = data_db
         await object_to_save.save()
+
+
+async def get_project(user: Annotated[User, Depends(get_user)],
+                      project_id: BeanieObjectId) ->Projects:
+    project = await Projects.find_one(Projects.id == project_id)
+    user_projects = user.projects
+    projects_db = any(project_db for project_db in user_projects if project_db.name == project.name)
+    if project is None or not projects_db: 
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Project with id {project_id} for user {user.username} does not exist")
+    return project

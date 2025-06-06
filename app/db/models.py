@@ -17,8 +17,8 @@ class Projects(Document):
     name: str
     descriptions: str
     instruments: str
-    tags: list[Tags] | list = []
-    links: list[Links] | list = []
+    tags: list[Tags] | None = []
+    links: list[Links] | None = []
 
     class Settings:
         use_state_management = True
@@ -92,7 +92,7 @@ class Hobbies(Document):
 class User(Document):
     username: str
     about: AboutMe | None = None
-    projects: list[Link[Projects]] | list = []
+    projects: list[Link[Projects]] | None = []
     education: Link[Education] | None = None
     skills: Link[Skills] | None = None
     hobbies: Link[Hobbies] | None = None
