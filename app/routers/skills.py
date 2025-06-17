@@ -14,28 +14,28 @@ router = APIRouter(
 
 
 @router.get('/', description="Information about skills")
-async def skills_information(user: Annotated[User, Depends(get_user)])->Skills:  
-    try:
-        user.skills.model_dump()
-        return user.skills
-    except AttributeError:
+async def skills_information(user: Annotated[User, Depends(get_user)])->Skills:
+    skill = user.skills
+    if skill is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Skill for user {user.username} does not exist"
         )
+    else:
+        user.skills.model_dump()
+        return user.skills
     
-@router.post('/update-workflow')
-async def update_or_add_workflows(user: Annotated[User, Depends(get_user)],
+@router.post('/add-workflow')
+async def add_workflows(user: Annotated[User, Depends(get_user)],
                                 workflow: WorkFlow,
-                                name: str | None = None,
                                 ) ->list[WorkFlow]:
     skills_db = user.skills
     if skills_db is None:
         user.skills = await Skills().create()
         skills_db = user.skills
-    print(user.skills.model_dump())
     workflows = skills_db.workflows
-    await update_data(data=workflows, new_data=workflow, object_to_save=skills_db, data_name=name)
+    workflows.append(workflow)
+    await skills_db.save()
     return skills_db.workflows
 
 @router.delete('/delete-workflow')
@@ -49,18 +49,18 @@ async def delete_workflow(user: Annotated[User, Depends(get_user)],
     await skills_db.save_changes()
     return skills_db.workflows
 
-@router.post('/update-instrument')
-async def update_or_add_instrument(user: Annotated[User, Depends(get_user)],
+@router.post('/add-instrument')
+async def add_instrument(user: Annotated[User, Depends(get_user)],
                                 instrument: Instrument,
-                                name: str | None = None,
                                 ) ->list[Instrument]:
     skills_db = user.skills
     if skills_db is None:
         user.skills = await Skills().create()
         skills_db = user.skills
     instruments = skills_db.instruments
-    await update_data(data=instruments, new_data=instrument, object_to_save=skills_db, data_name=name)
-    return skills_db.workflows
+    instruments.append(instrument)
+    await skills_db.save()
+    return skills_db.instruments
 
 @router.delete('/delete-instrument')
 async def delete_instrument(user: Annotated[User, Depends(get_user)],

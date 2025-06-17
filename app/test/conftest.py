@@ -9,7 +9,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 
 from ..settings import config
-from app.db.models import User, AboutMe, Projects, Education, Skills, Hobbies, Tags, Links
+from app.db.models import User, AboutMe, Projects, Education, Skills, Hobbies, Tags, Links, WorkFlow, Instrument
 from app.main import get_app
 from app.dependencies import create_about_evgeniy
 
@@ -82,3 +82,17 @@ async def create_projects(create_user: User)-> Projects:
     create_user.projects.append(project_created)
     await create_user.save_changes()
     return project_created
+
+
+@pytest.fixture(name='create_skills')
+async def create_skills(create_user: User)-> Skills:
+    workflow = WorkFlow(name='workflow test')
+    instrument = Instrument(name='instrument test')
+    skill_create = Skills(
+        workflows=[workflow],
+        instruments=[instrument]
+    )
+    await skill_create.create()
+    create_user.skills = skill_create
+    await create_user.save_changes()
+    return skill_create
